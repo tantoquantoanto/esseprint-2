@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import ResponsivePagination from "react-responsive-pagination";
-import ProductsCard from "../Components/Products/ProductsCard"
-import SearchInput from "./SearchInput";
+import ProductsCard from "./ProductsCard";
+import SearchInput from "../SearchInput";
+import "./productsCss/productsGrid.css"
+import Footer from "../Footer";
 
 const ProductsGrid = () => {
   const [products, setProducts] = useState([]);
@@ -21,6 +23,7 @@ const ProductsGrid = () => {
       );
       if (!response.ok) throw new Error("Failed to fetch products.");
       const data = await response.json();
+      console.log(data.products);
       setProducts(data.products);
       setTotalPages(data.totalPages);
     } catch (error) {
@@ -43,10 +46,12 @@ const ProductsGrid = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <Container>
+    <>
+    <Container className="page-container">
       <SearchInput
         onSearchResults={(results) => setProducts(results)}
         onResetSearch={() => fetchProducts(currentPage)}
+        className="search-input-container"
       />
       <Row className="gy-4">
         {products.map((product) => (
@@ -55,7 +60,7 @@ const ProductsGrid = () => {
           </Col>
         ))}
       </Row>
-      <div className="mt-4 d-flex justify-content-center">
+      <div className="pagination-container">
         <ResponsivePagination
           current={currentPage}
           total={totalPages}
@@ -63,6 +68,7 @@ const ProductsGrid = () => {
         />
       </div>
     </Container>
+    </>
   );
 };
 

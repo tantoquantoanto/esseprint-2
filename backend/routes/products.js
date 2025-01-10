@@ -15,7 +15,8 @@ products.post('/products/upload', cloud.single('img'), async (req,res, next) => 
         
     }
 
-})
+});
+
 
 
 products.get('/products', async (req,res,next) => {

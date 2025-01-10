@@ -37,7 +37,7 @@ const SearchInput = ({ onSearchResults, onResetSearch }) => {
   
 
   return (
-    <Form className="mb-4">
+    <Form >
       <Form.Control
         type="text"
         placeholder="Search products..."

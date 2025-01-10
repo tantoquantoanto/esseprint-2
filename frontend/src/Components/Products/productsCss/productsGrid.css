@@ -1,0 +1,80 @@
+/* Page Load Animation */
+@keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  .page-container {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+  
+  /* Search Input Styles */
+  .search-input-container {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .search-input-container input {
+    padding: 10px;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    transition: border-color 0.3s ease;
+  }
+  
+  .search-input-container input:focus {
+    border-color: #007bff;
+  }
+  
+  .search-input-container button {
+    margin-left: 10px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .search-input-container button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Pagination styles */
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  
+  .pagination-container .pagination-button {
+    background-color: #007bff;
+    border: none;
+    padding: 5px 15px;
+    margin: 0 5px;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .pagination-container .pagination-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .pagination-container .pagination-button.active {
+    background-color: #0056b3;
+  }
+  
+  .pagination-container .pagination-button.disabled {
+    background-color: #dcdcdc;
+    cursor: not-allowed;
+  }
+  

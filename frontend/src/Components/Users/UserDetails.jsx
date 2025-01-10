@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { Button, Card, Col, Container, Form, Modal, Row } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
-import Navbar from "../components/NavBar"
-import Footer from "../components/Footer"
+import Navbar from "../Navbar/NavBar"
+
 import Swal from "sweetalert2";
 
 const UserDetails = () => {
   const navigate = useNavigate();
   const { userId } = useParams();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({});
   const [formState, setFormState] = useState({});
   const [file, setFile] = useState(null); 
   const [showEditModal, setShowEditModal] = useState(false);
@@ -25,8 +25,13 @@ const UserDetails = () => {
           },
         }
       );
+      if (!response.ok) {
+        console.error("API Response Error:", response.status, response.statusText);
+        return; 
+      }
       const data = await response.json();
       console.log(data);
+      if (data && data.user){
       setUser(data.user);
       setFormState({
         name: data.user.name,
@@ -34,7 +39,8 @@ const UserDetails = () => {
         email: data.user.email,
         role: data.user.role,
         img: data.user.img,
-      });
+      })
+    };
     } catch (error) {
       console.log(error);
     }
@@ -243,7 +249,7 @@ const UserDetails = () => {
         </Modal.Body>
       </Modal>
     </Container>
-    <Footer/>
+  
     </>
   );
 };

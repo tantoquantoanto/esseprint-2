@@ -11,7 +11,7 @@ export const useProducts = () => {
   const token = localStorage.getItem("Authorization");
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-  // Funzione asincrona per ottenere i prodotti
+ 
   const getProductsFromApi = async () => {
     setLoading(true);
     setError(null);
@@ -33,7 +33,7 @@ export const useProducts = () => {
     }
   };
 
-  // Effettua il fetch quando cambia la pagina o la dimensione della pagina
+
   useEffect(() => {
     getProductsFromApi();
   }, [page, pageSize, token]);

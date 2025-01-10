@@ -1,42 +1,107 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f4f4; 
+  color: #333333; 
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+
+.Navbar {
+  background-color: #007bff; 
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.Navbar .navbar-brand {
+  font-weight: 600;
+  color: #ffffff; 
+  transition: color 0.3s;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.Navbar .navbar-brand:hover {
+  color: #ff6600; 
 }
+
+.Navbar .nav-link {
+  color: #ffffff; 
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.Navbar .nav-link:hover {
+  color: #ff6600; 
+}
+
+.Navbar .navbar-toggler-icon {
+  background-color: #ffffff; 
+}
+
+
+button, .btn-primary {
+  background-color: #c35cd8; 
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+button:hover, .btn-primary:hover {
+  background-color: #5f1368; 
+}
+
 
 .card {
-  padding: 2em;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: white;
 }
 
-.read-the-docs {
-  color: #888;
+.card-title {
+  font-weight: 600;
+  color: #333333; 
+}
+
+.card-body {
+  background-color: #ffffff;
+}
+
+
+input, select, textarea, .form-control {
+  border-radius: 5px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  font-family: 'Poppins', sans-serif;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #007bff; 
+  outline: none;
+}
+
+
+h1, h2, h3, h4, h5 {
+  font-weight: 700;
+  color: #333333;
+}
+
+.text-muted {
+  color: #777777; 
+}
+
+.text-info {
+  color: #28a745; 
+}
+
+
+a {
+  text-decoration: none;
+  color: #007bff;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: #ff6600; 
 }

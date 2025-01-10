@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
-import "../componentscss/addDestination.css";
-import NavBar from "../NavBar";
-import Footer from "../Footer";
+import NavBar from "../Navbar/NavBar";
 import RotateLoaderComponent from "../Loaders/RotateLoaderComponent";
-import Swal from "sweetalert2";  // Importa SweetAlert2
+import Swal from "sweetalert2"; 
 
 
-const NewProductsForm = () => {
+const NewProductForm = () => {
   const [formState, setFormState] = useState({});
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -32,7 +30,7 @@ const NewProductsForm = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${import.meta.env.VITE_SERVER_BASE_URL}/products/upload/cloud`,
+        `${import.meta.env.VITE_SERVER_BASE_URL}/products/upload`,
         {
           method: "POST",
           headers: {
@@ -103,14 +101,10 @@ const NewProductsForm = () => {
           <RotateLoaderComponent />
         ) : (
           <>
-            <div className="image-header mb-4">
-              <img
-                src="https://www.triptherapy.net/images/easyblog_articles/535/ganapathy-kumar-7782WXBriyM-unsplash.jpg"
-                alt="Add New Product"
-                className="img-fluid w-100"
-              />
+            <div className="d-flex align-items-center justify-content-center">
               <h1>Aggiungi un nuovo Prodotto</h1>
-            </div>
+              </div>
+            
 
             <Form encType="multipart/form-data" className="mt-4" onSubmit={submitProduct}>
               <Row className="d-flex align-items-center justify-content-center">
@@ -182,9 +176,9 @@ const NewProductsForm = () => {
           </>
         )}
       </Container>
-      <Footer />
+      
     </>
   );
 };
 
-export default NewProductsForm;
+export default NewProductForm;

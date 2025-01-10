@@ -18,8 +18,8 @@ const NavBar = ({ setShowApproved, onSearch, showApproved }) => {
   const isAdmin = role ? role === "admin" : false;
 
   return (
-    <Navbar bg="light" variant="light" expand="lg" sticky="top" className="shadow-sm">
-      <Container fluid>
+    <Navbar   bg="light" variant="light" expand="lg" sticky="top" className="shadow-sm d-flex align-items-center justify-content-center p-3">
+      <Container fluid >
         <Navbar.Brand as={Link} to="/" className="d-flex align-items-center text-primary">
          Esseprint
         </Navbar.Brand>
@@ -28,7 +28,7 @@ const NavBar = ({ setShowApproved, onSearch, showApproved }) => {
           <Nav className="ms-auto d-flex align-items-center justify-content-center">
           <Nav.Link 
               as={Link} 
-              to={session ? "/destinations" : "/"} 
+              to={"/"} 
               className="text-dark"
             >
               <LucideHome size={20} className="me-1" /> Home
@@ -51,7 +51,7 @@ const NavBar = ({ setShowApproved, onSearch, showApproved }) => {
               
               <NavDropdown title={<span><MenuIcon size={20} className="me-1" /> Menu </span>} id="menu-dropdown">
               <NavDropdown.Item as={Link} to="/login" >Login</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/chisiamo">Chi siamo</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/chi-siamo">Chi siamo</NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/contatti">Contatti</NavDropdown.Item> 
               <NavDropdown.Item as={Link} to="/privacy">Privacy Policy</NavDropdown.Item>                
             </NavDropdown>
@@ -62,7 +62,7 @@ const NavBar = ({ setShowApproved, onSearch, showApproved }) => {
               <Nav.Link as={Link} to="/contatti" className="text-dark">
                 Contatti
               </Nav.Link>
-               <Nav.Link as={Link} to="/chisiamo" className="text-dark">
+               <Nav.Link as={Link} to="/chi-siamo" className="text-dark">
                Chi Siamo
              </Nav.Link>
              </>
@@ -80,6 +80,7 @@ const NavBar = ({ setShowApproved, onSearch, showApproved }) => {
             {session && isAdmin && (
               <NavDropdown title={<span><LucideUser size={20} className="me-1 text-dark" /> Profilo</span>} id="profile-dropdown">
                 <NavDropdown.Item as={Link} to={`/users/${userId}`}>Il mio profilo</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to={`/create-new-product`}>Crea un nuovo prodotto </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={handleLogOut}>Logout</NavDropdown.Item>
               </NavDropdown>

@@ -7,7 +7,7 @@ const multer = require("multer");
 
 const cloud = multer({storage: cloudStorage});
 
-customizations.post("/customizations/upload/cloud", cloud.single("img"), async (req,res,next) => {
+customizations.post("/customizations/upload", cloud.single("img"), async (req,res,next) => {
     try {
         res.status(200).json({img: req.file.path})
         
@@ -21,12 +21,39 @@ customizations.get("/customizations", async (req,res,next) => {
     try {
         const customizations = await CustomizationModel.find();
 
-        res.status(200).send({statusCode: 200, message: "Customizations found successfully", customizations})
+        res.status(200).send({statusCode: 200, message: ` ${customizations.length} Customizations found successfully`, customizations})
         
     } catch (error) {
         next(error)
     }
-})
+});
+
+
+customizations.get("/customizations", async (req, res, next) => {
+    const { product } = req.query; 
+    
+    try {
+
+        const customization = await CustomizationModel.findOne({ product });
+
+        if (!customization) {
+            return res.status(404).send({
+                statusCode: 404,
+                message: "No customizations found for this product",
+            });
+        }
+
+        res.status(200).send({
+            statusCode: 200,
+            message: "Customization found successfully",
+            customization,
+        });
+        
+    } catch (error) {
+        next(error);
+    }
+});
+
 
 
 customizations.post("/customizations/create", async(req, res,next) => {

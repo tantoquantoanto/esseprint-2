@@ -59,7 +59,7 @@ orders.post("/orders/create", async (req, res, next) => {
   const { user, products, customizations } = req.body;
 
   try {
-    // Verifica che l'utente esista
+  
     const userExists = await UsersModel.findById(user);
     if (!userExists) {
       return res.status(404).send({
@@ -68,7 +68,6 @@ orders.post("/orders/create", async (req, res, next) => {
       });
     }
 
-    // Verifica che i prodotti esistano
     const foundProducts = await ProductsModel.find({ _id: { $in: products } });
     if (foundProducts.length !== products.length) {
       return res.status(404).send({
@@ -77,16 +76,16 @@ orders.post("/orders/create", async (req, res, next) => {
       });
     }
 
-    // Calcola il prezzo totale dei prodotti
+    
     const totalProductPrice = foundProducts.reduce(
       (total, product) => total + product.basePrice,
       0
     );
 
-    // Verifica che le customizzazioni esistano
+   
     let totalCustomizationPrice = 0;
     let validCustomizations = [];
-    if (customizations && customizations.length > 0) {
+    if (customizations && Array.isArray(customizations) && customizations.length > 0) {
       validCustomizations = await CustomizationModel.find({
         _id: { $in: customizations },
       });
@@ -98,14 +97,14 @@ orders.post("/orders/create", async (req, res, next) => {
         });
       }
 
-      // Calcola il prezzo totale delle customizzazioni
+     
       totalCustomizationPrice = validCustomizations.reduce(
         (total, customization) => total + customization.customizationPrice,
         0
       );
     }
 
-    // Crea il nuovo ordine
+    
     const newOrder = new OrdersModel({
       user,
       products: foundProducts.map((product) => product._id),
@@ -113,10 +112,10 @@ orders.post("/orders/create", async (req, res, next) => {
       totalPrice: totalProductPrice + totalCustomizationPrice,
     });
 
-    // Salva l'ordine nel database
+
     const savedOrder = await newOrder.save();
 
-    // Risposta di successo
+    
     res.status(201).send({
       statusCode: 201,
       message: "Order created successfully",
@@ -125,7 +124,86 @@ orders.post("/orders/create", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});orders.post("/orders/create", async (req, res, next) => {
+  const { user, products, customizations } = req.body;
+
+  try {
+    console.log("Request body:", req.body);  
+
+    const userExists = await UsersModel.findById(user);
+    if (!userExists) {
+      return res.status(404).send({
+        statusCode: 404,
+        message: "User not found",
+      });
+    }
+
+  
+    const foundProducts = await ProductsModel.find({ _id: { $in: products } });
+    if (foundProducts.length !== products.length) {
+      return res.status(404).send({
+        statusCode: 404,
+        message: "One or more products not found",
+      });
+    }
+
+    const totalProductPrice = foundProducts.reduce(
+      (total, product) => total + product.basePrice,
+      0
+    );
+
+    
+    let totalCustomizationPrice = 0;
+    let validCustomizations = [];
+
+    
+    if (customizations && Array.isArray(customizations) && customizations.length > 0) {
+      
+      validCustomizations = await CustomizationModel.find({
+        _id: { $in: customizations },
+      });
+
+      
+      if (validCustomizations.length !== customizations.length) {
+        return res.status(404).send({
+          statusCode: 404,
+          message: "One or more customizations not found",
+        });
+      }
+
+      
+      totalCustomizationPrice = validCustomizations.reduce(
+        (total, customization) => total + customization.customizationPrice,
+        0
+      );
+    } else {
+      console.log("Customizations are missing or empty");
+      
+      validCustomizations = [];
+      totalCustomizationPrice = 0;
+    }
+
+   
+    const newOrder = new OrdersModel({
+      user,
+      products: foundProducts.map((product) => product._id),
+      customizations: validCustomizations.map((custom) => custom._id),
+      totalPrice: totalProductPrice + totalCustomizationPrice,
+    });
+
+    const savedOrder = await newOrder.save();
+
+    res.status(201).send({
+      statusCode: 201,
+      message: "Order created successfully",
+      order: savedOrder,
+    });
+  } catch (error) {
+    console.error("Error creating order:", error); 
+    next(error);
+  }
 });
+
 
   
 
@@ -134,7 +212,7 @@ orders.post("/orders/create", async (req, res, next) => {
     const { products, customizations, status } = req.body;
   
     try {
-      // Trova l'ordine esistente
+      
       const order = await OrdersModel.findById(orderId);
       if (!order) {
         return res.status(404).send({
@@ -146,7 +224,7 @@ orders.post("/orders/create", async (req, res, next) => {
       let totalProductPrice = 0;
       let totalCustomizationPrice = 0;
   
-      // Aggiorna i prodotti se forniti
+      
       if (products) {
         const validProducts = [];
         for (const productId of products) {
@@ -163,7 +241,7 @@ orders.post("/orders/create", async (req, res, next) => {
         order.products = validProducts.map((product) => product._id);
       }
   
-      // Aggiorna le customizzazioni se fornite
+      
       if (customizations) {
         const validCustomizations = [];
         for (const customizationId of customizations) {
@@ -182,7 +260,7 @@ orders.post("/orders/create", async (req, res, next) => {
         );
       }
   
-      // Aggiorna lo stato se fornito
+      
       if (status) {
         const validStatuses = ["pending", "completed", "cancelled"];
         if (!validStatuses.includes(status)) {
@@ -194,12 +272,12 @@ orders.post("/orders/create", async (req, res, next) => {
         order.status = status;
       }
   
-      // Ricalcola il prezzo totale
+    
       if (products || customizations) {
         order.totalPrice = totalProductPrice + totalCustomizationPrice;
       }
   
-      // Salva l'ordine aggiornato
+      
       await order.save();
   
       res.status(200).send({

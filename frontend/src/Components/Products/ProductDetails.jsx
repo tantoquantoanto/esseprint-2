@@ -5,18 +5,16 @@ import {
   Container,
   Row,
   Button,
-  Modal,
   Form,
 } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import useSession from "../../../hooks/useSession";
 import Swal from "sweetalert2";
 import NavBar from "../Navbar/NavBar";
-
-
 import RotateLoaderComponent from "../Loaders/RotateLoaderComponent";
-import ProductsEditingModal from "./ProductsEditingModal";
 import { useProducts } from "../../../hooks/useProducts";
+import "./productsCss/productDetails.css"
+import Footer from "../Footer";
 
 const ProductDetails = () => {
   const [loading, setLoading] = useState(false);
@@ -28,6 +26,7 @@ const ProductDetails = () => {
     color: "",
     quantity: 1,
     imageUpload: null,
+    _id: null,  
   });
   const [customizationPrice, setCustomizationPrice] = useState(0);
   const token = localStorage.getItem("Authorization");
@@ -50,6 +49,7 @@ const ProductDetails = () => {
 
       const data = await response.json();
       setSingleProduct(data.product);
+      
     } catch (error) {
       console.error("Error fetching product:", error);
     } finally {
@@ -57,52 +57,198 @@ const ProductDetails = () => {
     }
   };
 
+  const getCustomizationForProduct = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SERVER_BASE_URL}/customizations?product=${productId}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch customization");
+
+      const data = await response.json();
+
+      if (data.customization) {
+        setCustomization(data.customization);
+        setCustomizationPrice(data.customization.customizationPrice);
+      } else {
+    
+        setCustomization({
+          text: "",
+          color: "",
+          quantity: 1,
+          imageUpload: null,
+          _id: null,
+        });
+        setCustomizationPrice(2);
+      }
+    } catch (error) {
+      console.error("Error fetching customization:", error);
+    }
+  };
+
   const handleCustomizationChange = (e) => {
     const { name, value } = e.target;
-    setCustomization((prev) => ({ ...prev, [name]: value }));
+    setCustomization((prev) => {
+      const newCustomization = { ...prev, [name]: value };
+      const newPrice = newCustomization.imageUpload ? 5 : 2;
+      setCustomizationPrice(newPrice);
+      return newCustomization;
+    });
   };
 
   const handleImageUpload = (e) => {
-    setCustomization((prev) => ({ ...prev, imageUpload: e.target.files[0] }));
+    setCustomization((prev) => {
+      const newCustomization = { ...prev, imageUpload: e.target.files[0] };
+      const newPrice = newCustomization.imageUpload ? 5 : 2;
+      setCustomizationPrice(newPrice);
+      return newCustomization;
+    });
   };
 
-  const submitCustomization = async () => {
+  const uploadImage = async (file) => {
     const formData = new FormData();
-    formData.append("product", productId);
-    formData.append("text", customization.text);
-    formData.append("color", customization.color);
-    formData.append("quantity", customization.quantity);
-    formData.append("customizationPrice", customizationPrice);
-    if (customization.imageUpload) {
-      formData.append("imageUpload", customization.imageUpload);
-    }
+    formData.append("img", file);
 
     try {
-      setLoading(true);
       const response = await fetch(
-        `${import.meta.env.VITE_SERVER_BASE_URL}/customizations/create`,
+        `${import.meta.env.VITE_SERVER_BASE_URL}/customizations/upload`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Authorization": `Bearer ${token}`,
           },
           body: formData,
         }
       );
 
-      if (!response.ok) throw new Error("Failed to submit customization");
+      if (!response.ok) {
+        throw new Error("Image upload failed");
+      }
 
-      Swal.fire("Success", "Customization added successfully!", "success");
+      const data = await response.json();
+      return data.img;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
+  };
+
+  const submitCustomization = async () => {
+    let imageUrl = null;
+    
+    if (customization.imageUpload) {
+      try {
+        imageUrl = await uploadImage(customization.imageUpload);
+      } catch (error) {
+        Swal.fire("Error", "Image upload failed.", "error");
+        return;
+      }
+    }
+  
+    const data = {
+      product: productId,
+      text: customization.text,
+      color: customization.color,
+      quantity: customization.quantity,
+      customizationPrice: customizationPrice,
+      imageUpload: imageUrl,
+    };
+  
+    try {
+      setLoading(true);
+  
+      let response;
+      if (customization && customization._id) {
+        response = await fetch(
+          `${import.meta.env.VITE_SERVER_BASE_URL}/customizations/update/${customization._id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }
+        );
+      } else {
+       
+        response = await fetch(
+          `${import.meta.env.VITE_SERVER_BASE_URL}/customizations/create`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }
+        );
+      }
+  
+      if (!response.ok) throw new Error("Failed to submit customization");
+  
+      const result = await response.json();
+      console.log("Customization result:", result); 
+
+      Swal.fire("Success", result.message || "Customization added/updated successfully!", "success");
+  
+      setCustomization(result.savedCustomization || data);
+      setCustomizationPrice(result.savedCustomization.customizationPrice || customizationPrice);
+  
+      
+      if (result.savedCustomization && result.savedCustomization._id) {
+       
+        await addToCart(result.savedCustomization._id, result.savedCustomization.customizationPrice);
+      } else {
+        Swal.fire("Error", "Customization ID is missing.", "error");
+      }
+  
     } catch (error) {
       console.error("Error submitting customization:", error);
-      Swal.fire("Error", "Failed to add customization.", "error");
+      Swal.fire("Error", "Failed to add/update customization.", "error");
     } finally {
       setLoading(false);
+    }
+  };
+  
+
+  const addToCart = async (customizationId, customizationPrice) => {
+    const cartData = {
+      user: session.userId,  
+      products: [productId],
+      customizations: [customizationId],
+      customizationPrice: customizationPrice,
+    };
+  
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_BASE_URL}/orders/create`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(cartData),
+      });
+  
+      if (!response.ok) throw new Error("Failed to add product to cart");
+  
+      const result = await response.json();
+      Swal.fire("Success", result.message || "Product added to cart successfully!", "success");
+  
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      Swal.fire("Error", "Failed to add product to cart.", "error");
     }
   };
 
   useEffect(() => {
     getSingleProduct(productId);
+    getCustomizationForProduct();  
   }, [productId]);
 
   if (loading) {
@@ -118,67 +264,73 @@ const ProductDetails = () => {
       <NavBar />
       <Container className="mt-5">
         <Row className="justify-content-center">
-          <Col md={8} lg={6}>
-            <Card className="shadow-sm mb-4">
+          <Col md={6}>
+            <Card className="product-card shadow-sm mb-4">
               <Card.Img variant="top" src={singleProduct.img} />
               <Card.Body>
-                <Card.Title className="fw-bold">{singleProduct.name}</Card.Title>
-                <Card.Text className="text-muted">{singleProduct.description}</Card.Text>
-                <Card.Text className="text-info">{singleProduct.category}</Card.Text>
-                <Card.Text>{singleProduct.basePrice} €</Card.Text>
+                <Card.Title className="fw-bold product-name">{singleProduct.name}</Card.Title>
+                <Card.Text className="text-muted product-description">{singleProduct.description}</Card.Text>
+                <Card.Text className="text-info product-category">{singleProduct.category}</Card.Text>
+                <Card.Text className="product-price">{singleProduct.basePrice} €</Card.Text>
               </Card.Body>
             </Card>
           </Col>
+          <Col md={6}>
+            {isUser && (
+              <Row className="mt-4">
+                <Col md={12}>
+                  <h5 className="customization-title">Customize Your Product</h5>
+                  <Form>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Text</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="text"
+                        value={customization.text}
+                        onChange={handleCustomizationChange}
+                        className="customization-input"
+                      />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Color</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="color"
+                        value={customization.color}
+                        onChange={handleCustomizationChange}
+                        className="customization-input"
+                      />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Quantity</Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="quantity"
+                        min="1"
+                        value={customization.quantity}
+                        onChange={handleCustomizationChange}
+                        className="customization-input"
+                      />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Upload Image</Form.Label>
+                      <Form.Control
+                        type="file"
+                        onChange={handleImageUpload}
+                        className="customization-input"
+                      />
+                    </Form.Group>
+                    <Button variant="primary" onClick={submitCustomization} className="customize-btn">
+                      Submit Customization
+                    </Button>
+                  </Form>
+                </Col>
+              </Row>
+            )}
+          </Col>
         </Row>
-
-        {isUser && (
-          <Row className="mt-4">
-            <Col md={8} lg={6}>
-              <h5>Customize Your Product</h5>
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label>Text</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="text"
-                    value={customization.text}
-                    onChange={handleCustomizationChange}
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Color</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="color"
-                    value={customization.color}
-                    onChange={handleCustomizationChange}
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Quantity</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="quantity"
-                    min="1"
-                    value={customization.quantity}
-                    onChange={handleCustomizationChange}
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Upload Image</Form.Label>
-                  <Form.Control
-                    type="file"
-                    onChange={handleImageUpload}
-                  />
-                </Form.Group>
-                <Button variant="primary" onClick={submitCustomization}>
-                  Submit Customization
-                </Button>
-              </Form>
-            </Col>
-          </Row>
-        )}
       </Container>
+      <Footer/>
     </>
   );
 };

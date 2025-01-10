@@ -20,9 +20,9 @@ login.post('/login', async (req,res) => {
         const token = jwt.sign({
             role: user.role,
             userId: user._id,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
         }, process.env.JWT_SECRET, {
-            expiresIn: '20m'
+            expiresIn: '5m'
         });
         console.log("Generated Token:", token);
 

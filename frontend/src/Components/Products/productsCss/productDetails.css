@@ -1,0 +1,92 @@
+/* App.css */
+
+/* Sfondo generico della pagina */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f5f5;
+  }
+  
+  /* Product Card */
+  .product-card {
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    margin-bottom: 20px;
+  }
+  
+  .product-card img {
+    border-radius: 10px 10px 0 0;
+  }
+  
+  /* Titolo del prodotto */
+  .product-name {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .product-description {
+    font-size: 1rem;
+    color: #777;
+    margin-top: 10px;
+  }
+  
+  .product-category {
+    font-size: 1.1rem;
+    color: #00aaff;
+  }
+  
+  .product-price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #28a745;
+    margin-top: 15px;
+  }
+  
+  /* Customization Section */
+  .customization-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+  }
+  
+  .customization-input {
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+  }
+  
+  .customization-input:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  .customize-btn {
+    background-color: #28a745;
+    border: none;
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 12px 25px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .customize-btn:hover {
+    background-color: #218838;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .product-card {
+      margin: 10px 0;
+    }
+  
+    .product-name {
+      font-size: 1.4rem;
+    }
+  }
+  

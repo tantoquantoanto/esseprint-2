@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { LucidePlane } from "lucide-react"; 
+import Footer from "../Components/Footer";
 
 
 const Login = () => {
@@ -31,7 +32,7 @@ const Login = () => {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem("Authorization", data.token);
-        navigate("/products", { replace: true });
+        navigate("/", { replace: true });
       }
       return response;
     } catch (e) {
@@ -53,6 +54,7 @@ const Login = () => {
   };
 
   return (
+    <>
     <Container className="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
       <div className="d-flex align-items-center mb-4 text-primary">
         <h1>Esseprint</h1>
@@ -97,6 +99,8 @@ const Login = () => {
         </Col>
       </Row>
     </Container>
+    <Footer/>
+    </>
   );
 };
 

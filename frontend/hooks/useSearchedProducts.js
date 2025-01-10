@@ -5,17 +5,17 @@ const useSearchedBooks = (endpoint) => {
   const [page,setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [totalSearchedPages, setTotalSearchedPages] = useState(1); 
-  const [allProducts, setAllProducts] = useState([]); // Tutti i prodotti caricati dal backend
-  const [inputValue, setInputValue] = useState(""); // Valore della barra di ricerca
-  const [isLoading, setIsLoading] = useState(false); // Stato di caricamento
-  const [error, setError] = useState(""); // Stato di errore
+  const [allProducts, setAllProducts] = useState([]); 
+  const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false); 
+  const [error, setError] = useState(""); 
 
-  // Funzione per aggiornare l'input
+  
   const onChangeInput = (e) => {
     setInputValue(e.target.value);
   };
 
-  // Funzione per filtrare i prodotti localmente
+ 
   const filterProducts = () => {
     if (inputValue === "") {
       setSearchedProducts(allProducts);
@@ -54,12 +54,10 @@ const useSearchedBooks = (endpoint) => {
     }
   };
 
-  // Effettua la fetch all'avvio
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // Aggiorna i prodotti visibili quando cambia l'input
   useEffect(() => {
     filterProducts();
   }, [inputValue, allProducts]);

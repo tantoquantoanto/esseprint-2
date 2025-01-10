@@ -12,7 +12,7 @@ cloudinary.config({
 const cloudStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: "TRAVELSERVERUPLOADS",
+        folder: "ESSEPRINTUPLOADS",
         allowed_formats: ['jpg', 'png', 'gif' ,'mp4'],
         format: async(req, file) => 'png',
         public_id: (req, file) => file.name

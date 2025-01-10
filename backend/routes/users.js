@@ -5,6 +5,7 @@ const isUserAuthorizedToProfile = require("../middlewares/isUserAuthorizedToProf
 const sendConfirmationEmail = require("../middlewares/sendConfirmationEmail");
 const multer = require("multer");
 const cloudStorage = require("../middlewares/multer/cloudinary");
+require('dotenv').config();
 
 const cloud = multer({storage: cloudStorage})
 
@@ -72,11 +73,10 @@ users.post("/register", async (req, res) => {
 });
 
 
-users.get("/users/:userId", isUserAuthorizedToProfile, async (req, res, next) => {
+users.get("/users/:userId", isUserAuthorizedToProfile,  async (req, res, next) => {
     const { userId } = req.params;
     try {
       const user = await UsersModel.findById(userId)
-      .populate({path: "products", select: "name"})
       .populate({path: "orders"});
       if (!user) {
         return res
