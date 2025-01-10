@@ -59,77 +59,9 @@ orders.post("/orders/create", async (req, res, next) => {
   const { user, products, customizations } = req.body;
 
   try {
-  
-    const userExists = await UsersModel.findById(user);
-    if (!userExists) {
-      return res.status(404).send({
-        statusCode: 404,
-        message: "User not found",
-      });
-    }
-
-    const foundProducts = await ProductsModel.find({ _id: { $in: products } });
-    if (foundProducts.length !== products.length) {
-      return res.status(404).send({
-        statusCode: 404,
-        message: "One or more products not found",
-      });
-    }
-
-    
-    const totalProductPrice = foundProducts.reduce(
-      (total, product) => total + product.basePrice,
-      0
-    );
-
-   
-    let totalCustomizationPrice = 0;
-    let validCustomizations = [];
-    if (customizations && Array.isArray(customizations) && customizations.length > 0) {
-      validCustomizations = await CustomizationModel.find({
-        _id: { $in: customizations },
-      });
-
-      if (validCustomizations.length !== customizations.length) {
-        return res.status(404).send({
-          statusCode: 404,
-          message: "One or more customizations not found",
-        });
-      }
-
-     
-      totalCustomizationPrice = validCustomizations.reduce(
-        (total, customization) => total + customization.customizationPrice,
-        0
-      );
-    }
-
-    
-    const newOrder = new OrdersModel({
-      user,
-      products: foundProducts.map((product) => product._id),
-      customizations: validCustomizations.map((custom) => custom._id),
-      totalPrice: totalProductPrice + totalCustomizationPrice,
-    });
-
-
-    const savedOrder = await newOrder.save();
-
-    
-    res.status(201).send({
-      statusCode: 201,
-      message: "Order created successfully",
-      order: savedOrder,
-    });
-  } catch (error) {
-    next(error);
-  }
-});orders.post("/orders/create", async (req, res, next) => {
-  const { user, products, customizations } = req.body;
-
-  try {
     console.log("Request body:", req.body);  
 
+    
     const userExists = await UsersModel.findById(user);
     if (!userExists) {
       return res.status(404).send({
@@ -138,7 +70,7 @@ orders.post("/orders/create", async (req, res, next) => {
       });
     }
 
-  
+    
     const foundProducts = await ProductsModel.find({ _id: { $in: products } });
     if (foundProducts.length !== products.length) {
       return res.status(404).send({
@@ -147,6 +79,7 @@ orders.post("/orders/create", async (req, res, next) => {
       });
     }
 
+    
     const totalProductPrice = foundProducts.reduce(
       (total, product) => total + product.basePrice,
       0
@@ -155,15 +88,11 @@ orders.post("/orders/create", async (req, res, next) => {
     
     let totalCustomizationPrice = 0;
     let validCustomizations = [];
-
-    
     if (customizations && Array.isArray(customizations) && customizations.length > 0) {
-      
       validCustomizations = await CustomizationModel.find({
         _id: { $in: customizations },
       });
 
-      
       if (validCustomizations.length !== customizations.length) {
         return res.status(404).send({
           statusCode: 404,
@@ -176,14 +105,9 @@ orders.post("/orders/create", async (req, res, next) => {
         (total, customization) => total + customization.customizationPrice,
         0
       );
-    } else {
-      console.log("Customizations are missing or empty");
-      
-      validCustomizations = [];
-      totalCustomizationPrice = 0;
     }
 
-   
+    
     const newOrder = new OrdersModel({
       user,
       products: foundProducts.map((product) => product._id),
@@ -191,13 +115,20 @@ orders.post("/orders/create", async (req, res, next) => {
       totalPrice: totalProductPrice + totalCustomizationPrice,
     });
 
+    
     const savedOrder = await newOrder.save();
 
+    
+    userExists.orders.push(savedOrder._id);
+    await userExists.save();
+
+    
     res.status(201).send({
       statusCode: 201,
-      message: "Order created successfully",
+      message: "Order created successfully and added to user's orders",
       order: savedOrder,
     });
+
   } catch (error) {
     console.error("Error creating order:", error); 
     next(error);
@@ -289,6 +220,34 @@ orders.post("/orders/create", async (req, res, next) => {
       next(error);
     }
   });
+  
+  orders.delete("/orders/:orderId", async (req, res, next) => {
+    const { orderId } = req.params;
+
+    try {
+      console.log(`Deleting order with ID: ${orderId}`);  // Log dell'ID dell'ordine
+
+      const order = await OrdersModel.findByIdAndDelete(orderId);
+      
+      if (!order) {
+        console.log("Order not found");  // Log se l'ordine non è trovato
+        return res.status(404).send({
+          statusCode: 404,
+          message: "Order not found",
+        });
+      }
+
+      console.log("Order deleted successfully");  // Log per confermare la cancellazione
+      res.status(200).send({
+        statusCode: 200,
+        message: "Order deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting order:", error);  // Log degli errori
+      next(error);
+    }
+});
+
   
 
 

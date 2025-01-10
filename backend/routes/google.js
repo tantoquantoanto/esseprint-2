@@ -85,7 +85,7 @@ google.get(
         user = await newUser.save();
       }
 
-      // Creazione del payload per il token JWT
+     
       const payload = {
         userId: user._id, 
         email: user.email,
@@ -94,7 +94,7 @@ google.get(
 
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-      // Redirect alla pagina di successo con il token JWT
+    
       const redirectUrl = `${process.env.VITE_CLIENT_BASE_URL}/success/${encodeURIComponent(token)}`;
       res.redirect(redirectUrl);
     } catch (error) {

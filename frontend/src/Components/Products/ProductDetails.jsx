@@ -29,6 +29,7 @@ const ProductDetails = () => {
     _id: null,  
   });
   const [customizationPrice, setCustomizationPrice] = useState(0);
+  const [finalPrice, setFinalPrice] = useState(0);  
   const token = localStorage.getItem("Authorization");
   const session = useSession();
   const isUser = session?.role === "user";
@@ -76,7 +77,6 @@ const ProductDetails = () => {
         setCustomization(data.customization);
         setCustomizationPrice(data.customization.customizationPrice);
       } else {
-    
         setCustomization({
           text: "",
           color: "",
@@ -84,19 +84,33 @@ const ProductDetails = () => {
           imageUpload: null,
           _id: null,
         });
-        setCustomizationPrice(2);
+        setCustomizationPrice(2);  
       }
     } catch (error) {
       console.error("Error fetching customization:", error);
     }
   };
 
+ 
+  const calculateFinalPrice = () => {
+    let price = singleProduct.basePrice;
+
+    if (customization.text) {
+      price += 2;  
+    }
+
+    if (customization.imageUpload) {
+      price += 5;  
+    }
+
+    setFinalPrice(price);
+  };
+
   const handleCustomizationChange = (e) => {
     const { name, value } = e.target;
     setCustomization((prev) => {
       const newCustomization = { ...prev, [name]: value };
-      const newPrice = newCustomization.imageUpload ? 5 : 2;
-      setCustomizationPrice(newPrice);
+      calculateFinalPrice(); 
       return newCustomization;
     });
   };
@@ -104,8 +118,7 @@ const ProductDetails = () => {
   const handleImageUpload = (e) => {
     setCustomization((prev) => {
       const newCustomization = { ...prev, imageUpload: e.target.files[0] };
-      const newPrice = newCustomization.imageUpload ? 5 : 2;
-      setCustomizationPrice(newPrice);
+      calculateFinalPrice(); 
       return newCustomization;
     });
   };
@@ -140,7 +153,8 @@ const ProductDetails = () => {
 
   const submitCustomization = async () => {
     let imageUrl = null;
-    
+  
+   
     if (customization.imageUpload) {
       try {
         imageUrl = await uploadImage(customization.imageUpload);
@@ -150,12 +164,25 @@ const ProductDetails = () => {
       }
     }
   
+   
+    let calculatedCustomizationPrice = 0;
+    
+    if (customization.text || customization.color || customization.imageUpload) {
+      
+      calculatedCustomizationPrice = 2;
+      
+      if (customization.imageUpload) {
+        calculatedCustomizationPrice += 5;
+      }
+    }
+  
+   
     const data = {
       product: productId,
       text: customization.text,
       color: customization.color,
       quantity: customization.quantity,
-      customizationPrice: customizationPrice,
+      customizationPrice: calculatedCustomizationPrice,
       imageUpload: imageUrl,
     };
   
@@ -163,6 +190,7 @@ const ProductDetails = () => {
       setLoading(true);
   
       let response;
+      
       if (customization && customization._id) {
         response = await fetch(
           `${import.meta.env.VITE_SERVER_BASE_URL}/customizations/update/${customization._id}`,
@@ -176,7 +204,6 @@ const ProductDetails = () => {
           }
         );
       } else {
-       
         response = await fetch(
           `${import.meta.env.VITE_SERVER_BASE_URL}/customizations/create`,
           {
@@ -193,20 +220,16 @@ const ProductDetails = () => {
       if (!response.ok) throw new Error("Failed to submit customization");
   
       const result = await response.json();
-      console.log("Customization result:", result); 
-
-      Swal.fire("Success", result.message || "Customization added/updated successfully!", "success");
+      console.log("Customization result:", result);
   
-      setCustomization(result.savedCustomization || data);
-      setCustomizationPrice(result.savedCustomization.customizationPrice || customizationPrice);
+      Swal.fire("Success",  "Personalizzazione aggiunta con successo, riceverai presto una mail dai nostri esperti grafici con la bozza da approvare e i dettagli sul pagamento.!", "success");
   
       
-      if (result.savedCustomization && result.savedCustomization._id) {
-       
-        await addToCart(result.savedCustomization._id, result.savedCustomization.customizationPrice);
-      } else {
-        Swal.fire("Error", "Customization ID is missing.", "error");
-      }
+      setCustomization(result.savedCustomization || data);
+      setCustomizationPrice(result.savedCustomization.customizationPrice || calculatedCustomizationPrice);
+      calculateFinalPrice();  
+      const customizationId = result.savedCustomization ? result.savedCustomization._id : null;
+      await addToCart(customizationId, result.savedCustomization ? result.savedCustomization.customizationPrice : 0);
   
     } catch (error) {
       console.error("Error submitting customization:", error);
@@ -216,12 +239,12 @@ const ProductDetails = () => {
     }
   };
   
-
   const addToCart = async (customizationId, customizationPrice) => {
+   
     const cartData = {
-      user: session.userId,  
+      user: session.userId,
       products: [productId],
-      customizations: [customizationId],
+      customizations: customizationId ? [customizationId] : [],  
       customizationPrice: customizationPrice,
     };
   
@@ -238,18 +261,29 @@ const ProductDetails = () => {
       if (!response.ok) throw new Error("Failed to add product to cart");
   
       const result = await response.json();
-      Swal.fire("Success", result.message || "Product added to cart successfully!", "success");
+      setTimeout(() => {
+        Swal.fire("Success", "Prodotto aggiunto al carrello con successo!", "success");
+      }, 2000); 
+      
   
     } catch (error) {
       console.error("Error adding product to cart:", error);
       Swal.fire("Error", "Failed to add product to cart.", "error");
     }
   };
+  
+
 
   useEffect(() => {
     getSingleProduct(productId);
     getCustomizationForProduct();  
   }, [productId]);
+
+  useEffect(() => {
+    if (singleProduct) {
+      calculateFinalPrice(); 
+    }
+  }, [singleProduct, customization]);
 
   if (loading) {
     return <RotateLoaderComponent />;
@@ -272,6 +306,7 @@ const ProductDetails = () => {
                 <Card.Text className="text-muted product-description">{singleProduct.description}</Card.Text>
                 <Card.Text className="text-info product-category">{singleProduct.category}</Card.Text>
                 <Card.Text className="product-price">{singleProduct.basePrice} €</Card.Text>
+                <Card.Text className="product-price"><strong>Prezzo Finale:</strong> {finalPrice} €</Card.Text> 
               </Card.Body>
             </Card>
           </Col>
@@ -279,10 +314,10 @@ const ProductDetails = () => {
             {isUser && (
               <Row className="mt-4">
                 <Col md={12}>
-                  <h5 className="customization-title">Customize Your Product</h5>
+                  <h5 className="customization-title">Se vuoi personalizzare il tuo prodotto...</h5>
                   <Form>
                     <Form.Group className="mb-3">
-                      <Form.Label>Text</Form.Label>
+                      <Form.Label>Testo</Form.Label>
                       <Form.Control
                         type="text"
                         name="text"
@@ -292,7 +327,7 @@ const ProductDetails = () => {
                       />
                     </Form.Group>
                     <Form.Group className="mb-3">
-                      <Form.Label>Color</Form.Label>
+                      <Form.Label>Colore</Form.Label>
                       <Form.Control
                         type="text"
                         name="color"
@@ -302,7 +337,7 @@ const ProductDetails = () => {
                       />
                     </Form.Group>
                     <Form.Group className="mb-3">
-                      <Form.Label>Quantity</Form.Label>
+                      <Form.Label>Quantità</Form.Label>
                       <Form.Control
                         type="number"
                         name="quantity"
@@ -313,7 +348,7 @@ const ProductDetails = () => {
                       />
                     </Form.Group>
                     <Form.Group className="mb-3">
-                      <Form.Label>Upload Image</Form.Label>
+                      <Form.Label>Carica un'immagine</Form.Label>
                       <Form.Control
                         type="file"
                         onChange={handleImageUpload}
@@ -321,7 +356,7 @@ const ProductDetails = () => {
                       />
                     </Form.Group>
                     <Button variant="primary" onClick={submitCustomization} className="customize-btn">
-                      Submit Customization
+                      Aggiungi al carrello
                     </Button>
                   </Form>
                 </Col>

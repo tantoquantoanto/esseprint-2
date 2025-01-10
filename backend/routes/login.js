@@ -22,7 +22,7 @@ login.post('/login', async (req,res) => {
             userId: user._id,
             createdAt: user.createdAt,
         }, process.env.JWT_SECRET, {
-            expiresIn: '5m'
+            expiresIn: '20m'
         });
         console.log("Generated Token:", token);
 

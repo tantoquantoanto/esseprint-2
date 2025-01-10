@@ -19,37 +19,41 @@ products.post('/products/upload', cloud.single('img'), async (req,res, next) => 
 
 
 
-products.get('/products', async (req,res,next) => {
-    const {page = 1, pageSize = 6} = req.query;
+products.get('/products', async (req, res, next) => {
+    const { page = 1, pageSize = 6, name = "" } = req.query;
+    
     try {
-        const totalProducts = await ProductsModel.countDocuments();
-        const totalPages = Math.ceil(totalProducts/ pageSize);
-        const products = await ProductsModel.find()
+      const totalProducts = await ProductsModel.countDocuments({
+        name: { $regex: name, $options: 'i' },  
+      });
+  
+      const totalPages = Math.ceil(totalProducts / pageSize);
+      const products = await ProductsModel.find({
+        name: { $regex: name, $options: 'i' }, 
+      })
         .limit(pageSize)
-        .skip((page - 1) * pageSize)
-        
-        
-
-        if(products.length === 0) {
-            return res.status(404).send({statusCode: 404, message: "Sorry, we didn't find any product"})
-        }
-
-        res.status(200).send({
-            statusCode: 200,
-            message: `We have successfully found ${products.length} products`,
-            totalProducts: totalProducts,
-            totalPages : totalPages,
-            products
-        }
-
-        )
-
-        
+        .skip((page - 1) * pageSize);
+  
+      if (products.length === 0) {
+        return res.status(404).send({ 
+          statusCode: 404, 
+          message: "Sorry, we didn't find any product" 
+        });
+      }
+  
+      res.status(200).send({
+        statusCode: 200,
+        message: `We have successfully found ${products.length} products`,
+        totalProducts: totalProducts,
+        totalPages: totalPages,
+        products,
+      });
+  
     } catch (error) {
-        next(error)
-        
+      next(error);
     }
-});
+  });
+  
 
 
 

@@ -13,6 +13,7 @@ import NewProductForm from "./Components/Products/NewProductForm";
 import ChiSiamo from "./Pages/ChiSiamo";
 import Contatti from "./Pages/Contatti";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import NewUsersForm from "./Components/Users/NewUsersForm"
 
 
 
@@ -34,6 +35,7 @@ function App() {
             <Route path="/chi-siamo" element = {<ChiSiamo/>}/>
             <Route path="/contatti" element = {<Contatti/>}/>
             <Route path="/privacy" element = {<PrivacyPolicy/>}/>
+            <Route path="create-new-users" element = {<NewUsersForm/>}/>
             
             <Route element={<ProtectedRoutes />}>
             

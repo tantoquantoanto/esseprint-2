@@ -10,7 +10,7 @@ require('dotenv').config();
 const cloud = multer({storage: cloudStorage})
 
 
-users.post("/users/upload"), cloud.single('img'), async (req,res) => {
+users.post("/users/upload", cloud.single('img'), async (req,res) => {
 try {
   res.status(200).json({img: req.file.path})
   
@@ -19,7 +19,7 @@ try {
   
 }
 
-}
+})
 
 
 users.get("/users", async (req,res, next) => {

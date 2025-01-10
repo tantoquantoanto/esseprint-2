@@ -16,7 +16,7 @@ const NewUsersForm = () => {
     formData.append("img", fileToUpload);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SERVER_BASE_URL}/users/upload/cloud`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_BASE_URL}/users/upload`, {
         method: "POST",
         body: formData,
       });
@@ -45,7 +45,7 @@ const NewUsersForm = () => {
           img: uploadedFile.img,
         };
 
-        const response = await fetch(`${import.meta.env.VITE_SERVER_BASE_URL}/users/create`, {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_BASE_URL}/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
