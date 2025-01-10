@@ -121,7 +121,36 @@ products.patch("/products/update/:productId", async (req,res, next) => {
     } catch (error) {
         next(error)
     }
-})
+});
+
+products.delete("/products/delete/:productId", async (req, res, next) => {
+  const { productId } = req.params;
+
+  try {
+    console.log(`Deleting product with ID: ${productId}`);  
+
+    const product = await ProductsModel.findByIdAndDelete(productId);
+    
+    if (!product) {
+      console.log("Product not found");  
+      return res.status(404).send({
+        statusCode: 404,
+        message: "Product not found",
+      });
+    }
+
+    console.log("Product deleted successfully"); 
+    res.status(200).send({
+      statusCode: 200,
+      message: "Product deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting product:", error);  
+  }
+});
+
+
+
 
 
 module.exports = products; 

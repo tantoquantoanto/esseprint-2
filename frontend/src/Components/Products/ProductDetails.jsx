@@ -6,6 +6,7 @@ import {
   Row,
   Button,
   Form,
+  Modal,
 } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import useSession from "../../../hooks/useSession";
@@ -13,7 +14,7 @@ import Swal from "sweetalert2";
 import NavBar from "../Navbar/NavBar";
 import RotateLoaderComponent from "../Loaders/RotateLoaderComponent";
 import { useProducts } from "../../../hooks/useProducts";
-import "./productsCss/productDetails.css"
+import "./productsCss/productDetails.css";
 import Footer from "../Footer";
 
 const ProductDetails = () => {
@@ -33,6 +34,16 @@ const ProductDetails = () => {
   const token = localStorage.getItem("Authorization");
   const session = useSession();
   const isUser = session?.role === "user";
+  const isAdmin = session?.role === "admin";  
+
+  const [showModal, setShowModal] = useState(false);
+  const [productDetails, setProductDetails] = useState({
+    name: "",
+    description: "",
+    basePrice: 0,
+    category: "",
+    img: "",
+  });
 
   const getSingleProduct = async (id) => {
     setLoading(true);
@@ -58,232 +69,71 @@ const ProductDetails = () => {
     }
   };
 
-  const getCustomizationForProduct = async () => {
+  const handleDeleteProduct = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SERVER_BASE_URL}/customizations?product=${productId}`,
+        `${import.meta.env.VITE_SERVER_BASE_URL}/products/delete/${productId}`,
         {
+          method: "DELETE",
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      if (!response.ok) throw new Error("Failed to fetch customization");
+      if (!response.ok) throw new Error("Failed to delete product");
 
-      const data = await response.json();
-
-      if (data.customization) {
-        setCustomization(data.customization);
-        setCustomizationPrice(data.customization.customizationPrice);
-      } else {
-        setCustomization({
-          text: "",
-          color: "",
-          quantity: 1,
-          imageUpload: null,
-          _id: null,
-        });
-        setCustomizationPrice(2);  
-      }
+      Swal.fire("Success", "Product deleted successfully", "success");
     } catch (error) {
-      console.error("Error fetching customization:", error);
+      console.error("Error deleting product:", error);
+      Swal.fire("Error", "Failed to delete product", "error");
     }
   };
 
- 
-  const calculateFinalPrice = () => {
-    let price = singleProduct.basePrice;
-
-    if (customization.text) {
-      price += 2;  
-    }
-
-    if (customization.imageUpload) {
-      price += 5;  
-    }
-
-    setFinalPrice(price);
-  };
-
-  const handleCustomizationChange = (e) => {
-    const { name, value } = e.target;
-    setCustomization((prev) => {
-      const newCustomization = { ...prev, [name]: value };
-      calculateFinalPrice(); 
-      return newCustomization;
-    });
-  };
-
-  const handleImageUpload = (e) => {
-    setCustomization((prev) => {
-      const newCustomization = { ...prev, imageUpload: e.target.files[0] };
-      calculateFinalPrice(); 
-      return newCustomization;
-    });
-  };
-
-  const uploadImage = async (file) => {
-    const formData = new FormData();
-    formData.append("img", file);
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SERVER_BASE_URL}/customizations/upload`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Image upload failed");
-      }
-
-      const data = await response.json();
-      return data.img;
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      throw error;
-    }
-  };
-
-  const submitCustomization = async () => {
-    let imageUrl = null;
-  
-   
-    if (customization.imageUpload) {
-      try {
-        imageUrl = await uploadImage(customization.imageUpload);
-      } catch (error) {
-        Swal.fire("Error", "Image upload failed.", "error");
-        return;
-      }
-    }
-  
-   
-    let calculatedCustomizationPrice = 0;
-    
-    if (customization.text || customization.color || customization.imageUpload) {
-      
-      calculatedCustomizationPrice = 2;
-      
-      if (customization.imageUpload) {
-        calculatedCustomizationPrice += 5;
-      }
-    }
-  
-   
-    const data = {
-      product: productId,
-      text: customization.text,
-      color: customization.color,
-      quantity: customization.quantity,
-      customizationPrice: calculatedCustomizationPrice,
-      imageUpload: imageUrl,
-    };
-  
-    try {
-      setLoading(true);
-  
-      let response;
-      
-      if (customization && customization._id) {
-        response = await fetch(
-          `${import.meta.env.VITE_SERVER_BASE_URL}/customizations/update/${customization._id}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          }
-        );
-      } else {
-        response = await fetch(
-          `${import.meta.env.VITE_SERVER_BASE_URL}/customizations/create`,
-          {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          }
-        );
-      }
-  
-      if (!response.ok) throw new Error("Failed to submit customization");
-  
-      const result = await response.json();
-      console.log("Customization result:", result);
-  
-      Swal.fire("Success",  "Personalizzazione aggiunta con successo, riceverai presto una mail dai nostri esperti grafici con la bozza da approvare e i dettagli sul pagamento.!", "success");
-  
-      
-      setCustomization(result.savedCustomization || data);
-      setCustomizationPrice(result.savedCustomization.customizationPrice || calculatedCustomizationPrice);
-      calculateFinalPrice();  
-      const customizationId = result.savedCustomization ? result.savedCustomization._id : null;
-      await addToCart(customizationId, result.savedCustomization ? result.savedCustomization.customizationPrice : 0);
-  
-    } catch (error) {
-      console.error("Error submitting customization:", error);
-      Swal.fire("Error", "Failed to add/update customization.", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const addToCart = async (customizationId, customizationPrice) => {
-   
-    const cartData = {
-      user: session.userId,
-      products: [productId],
-      customizations: customizationId ? [customizationId] : [],  
-      customizationPrice: customizationPrice,
-    };
-  
-    try {
-      const response = await fetch(`${import.meta.env.VITE_SERVER_BASE_URL}/orders/create`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(cartData),
+  const handleShowModal = () => {
+    if (singleProduct) {
+      setProductDetails({
+        name: singleProduct.name,
+        description: singleProduct.description,
+        basePrice: singleProduct.basePrice,
+        category: singleProduct.category,
+        img: singleProduct.img,
       });
-  
-      if (!response.ok) throw new Error("Failed to add product to cart");
-  
-      const result = await response.json();
-      setTimeout(() => {
-        Swal.fire("Success", "Prodotto aggiunto al carrello con successo!", "success");
-      }, 2000); 
-      
-  
-    } catch (error) {
-      console.error("Error adding product to cart:", error);
-      Swal.fire("Error", "Failed to add product to cart.", "error");
+      setShowModal(true);
     }
   };
-  
 
+  const handleCloseModal = () => setShowModal(false);
+
+  const handleUpdateProduct = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SERVER_BASE_URL}/products/update/${productId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productDetails),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update product");
+
+      const updatedProduct = await response.json();
+      setSingleProduct(updatedProduct.product);
+      Swal.fire("Success", "Product updated successfully", "success");
+      setShowModal(false);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      Swal.fire("Error", "Failed to update product", "error");
+    }
+  };
 
   useEffect(() => {
     getSingleProduct(productId);
-    getCustomizationForProduct();  
   }, [productId]);
-
-  useEffect(() => {
-    if (singleProduct) {
-      calculateFinalPrice(); 
-    }
-  }, [singleProduct, customization]);
 
   if (loading) {
     return <RotateLoaderComponent />;
@@ -308,6 +158,12 @@ const ProductDetails = () => {
                 <Card.Text className="product-price">{singleProduct.basePrice} €</Card.Text>
                 <Card.Text className="product-price"><strong>Prezzo Finale:</strong> {finalPrice} €</Card.Text> 
               </Card.Body>
+              {isAdmin && (
+                <Card.Footer>
+                  <Button variant="warning" onClick={handleShowModal}>Modifica</Button>
+                  <Button variant="danger" onClick={handleDeleteProduct}>Elimina</Button>
+                </Card.Footer>
+              )}
             </Card>
           </Col>
           <Col md={6}>
@@ -365,7 +221,66 @@ const ProductDetails = () => {
           </Col>
         </Row>
       </Container>
-      <Footer/>
+
+      <Modal show={showModal} onHide={handleCloseModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Modifica Prodotto</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Nome</Form.Label>
+              <Form.Control
+                type="text"
+                value={productDetails.name}
+                onChange={(e) => setProductDetails({ ...productDetails, name: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Descrizione</Form.Label>
+              <Form.Control
+                type="text"
+                value={productDetails.description}
+                onChange={(e) => setProductDetails({ ...productDetails, description: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Prezzo</Form.Label>
+              <Form.Control
+                type="number"
+                value={productDetails.basePrice}
+                onChange={(e) => setProductDetails({ ...productDetails, basePrice: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Categoria</Form.Label>
+              <Form.Control
+                type="text"
+                value={productDetails.category}
+                onChange={(e) => setProductDetails({ ...productDetails, category: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Immagine</Form.Label>
+              <Form.Control
+                type="text"
+                value={productDetails.img}
+                onChange={(e) => setProductDetails({ ...productDetails, img: e.target.value })}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Annulla
+          </Button>
+          <Button variant="primary" onClick={handleUpdateProduct}>
+            Salva modifiche
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      
+      <Footer />
     </>
   );
 };
