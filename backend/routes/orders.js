@@ -225,24 +225,25 @@ orders.post("/orders/create", async (req, res, next) => {
     const { orderId } = req.params;
 
     try {
-      console.log(`Deleting order with ID: ${orderId}`);  
+      console.log(`Deleting order with ID: ${orderId}`);  // Log dell'ID dell'ordine
 
       const order = await OrdersModel.findByIdAndDelete(orderId);
       
       if (!order) {
-        console.log("Order not found");  
+        console.log("Order not found");  // Log se l'ordine non è trovato
         return res.status(404).send({
           statusCode: 404,
           message: "Order not found",
         });
       }
 
-      console.log("Order deleted successfully");  
+      console.log("Order deleted successfully");  // Log per confermare la cancellazione
       res.status(200).send({
         statusCode: 200,
         message: "Order deleted successfully",
       });
     } catch (error) {
+      console.error("Error deleting order:", error);  // Log degli errori
       next(error);
     }
 });

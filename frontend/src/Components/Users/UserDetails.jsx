@@ -175,7 +175,6 @@ const UserDetails = () => {
                 {user?.name} {user?.surname}
               </Card.Title>
               <Card.Text>Email: {user?.email}</Card.Text>
-              <Card.Text>Username: {user?.username}</Card.Text>
               <Card.Text>Role: {user?.role}</Card.Text>
               <div className="d-flex flex-column align-items-center justify-content-center">
               <Button variant="primary" className="mt-3 me-2" onClick={() => setShowEditModal(true)}>
